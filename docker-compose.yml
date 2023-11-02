@@ -1,0 +1,77 @@
+version: '2.2'
+services:
+  #User Contaienr
+  user:
+    container_name: user
+    build: 
+      context: ./user-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./user-service/static:/user/static
+    env_file:
+      - ./user-service/.env
+    ports:
+      - 8000:8000
+    depends_on:
+      - user_db
+  user_db:  
+    container_name: user_db
+    image: postgres
+    restart: always
+    env_file:
+      - ./user-service/.env
+    ports:
+      - "5435:5432"
+#Post Container
+  post:
+    container_name: post
+    build: 
+      context: ./post-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./post-service/static:/user/static
+    env_file:
+      - ./post-service/.env
+    ports:
+      - 8001:8001
+    depends_on:
+      - post_db
+#Post db
+  post_db:
+    container_name: post_db
+    image: postgres
+    restart: always
+    env_file:
+      - ./post-service/.env
+    ports:
+      - "5436:5432"
+  # pgadmin:
+  #   container_name: pgadmin4
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=root
+  #   ports:
+  #     - "5050:81"
+#NGINX
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./user-service/static:/user/static
+      - ./post-service/static:/post/static
+   
+    ports:
+      - '8080:80'
+    depends_on:
+      - user
+      - post
+
+
+
+
+
+
+volumes:
+  static:
+    
