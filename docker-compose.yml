@@ -12,16 +12,6 @@ services:
       - ./user-service/.env
     ports:
       - 8000:8000
-    depends_on:
-      - user_db
-  user_db:  
-    container_name: user_db
-    image: postgres
-    restart: always
-    env_file:
-      - ./user-service/.env
-    ports:
-      - "5435:5432"
 #Post Container
   post:
     container_name: post
@@ -29,43 +19,50 @@ services:
       context: ./post-service
       dockerfile: Dockerfile
     volumes:
-      - ./post-service/static:/user/static
+      - ./post-service/static:/post/static
     env_file:
       - ./post-service/.env
     ports:
       - 8001:8001
-    depends_on:
-      - post_db
-#Post db
-  post_db:
-    container_name: post_db
-    image: postgres
-    restart: always
+#Chat service
+  chat:
+    container_name: chat
+    build: 
+      context: ./chat-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./chat-service/static:/chat/static
     env_file:
-      - ./post-service/.env
+      - ./chat-service/.env
     ports:
-      - "5436:5432"
-  # pgadmin:
-  #   container_name: pgadmin4
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-  #     - PGADMIN_DEFAULT_PASSWORD=root
-  #   ports:
-  #     - "5050:81"
-#NGINX
+      - 8003:8003
+    links:
+      - redis
+
+  redis:
+    image: redis:5.0-alpine
+    container_name: redis-container
+    # command: redis-server
+    restart: always  
+    # container_name: redis-container
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-network
+    
   nginx:
     build: ./nginx
     volumes:
       - ./user-service/static:/user/static
       - ./post-service/static:/post/static
-   
+      - ./chat-service/static:/chat/static
+      
     ports:
       - '8080:80'
     depends_on:
       - user
       - post
+      - chat
 
 
 
@@ -74,4 +71,7 @@ services:
 
 volumes:
   static:
+
+networks:
+  redis-network:
     

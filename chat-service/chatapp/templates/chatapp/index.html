@@ -1,0 +1,47 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<h1>FILE</h1>
+		<div id="chats">
+			{% for m in messages %}
+			<b>{{m.sender}}:{{m.content}}</b>
+			{% endfor %}
+		</div>
+		<input type="text" placeholder="Enter chat" id="chat-input" />
+		<button id="chat-submit">Submit</button>
+		<script>
+			const chatSocket = new WebSocket(
+				'ws://' + window.location.host + '/ws/' + '888' + '/'
+			);
+
+			chatSocket.onmessage = function (e) {
+				console.log('onMessage');
+				const data = JSON.parse(e.data);
+
+				if (data.message) {
+					document.querySelector('#chats').innerHTML +=
+						'<b>' + data.sender + '</br> :' + data.message + '<br>';
+				}
+			};
+
+			document.querySelector('#chat-submit').onclick = function (e) {
+				const messageInputDom = document.querySelector('#chat-input');
+				const message = messageInputDom.value;
+
+				chatSocket.send(
+					JSON.stringify({
+						message: message,
+						sender: 2,
+						room: 1,
+						receiver: 1,
+					})
+				);
+				messageInputDom.value = '';
+			};
+		</script>
+	</body>
+</html>
